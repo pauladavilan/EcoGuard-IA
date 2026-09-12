@@ -58,14 +58,24 @@ with col1:
 
 with col2:
     st.subheader("📝 Módulo de Texto y Análisis de Riesgo")
-    texto_pub = st.text_area("Texto de la publicación o anuncio:", value="Se vende cachorro de jaguar ocelote en excelente estado, entrega inmediata por DM.")
+    
+    # Campo vacío con texto de ayuda (placeholder)
+    texto_pub = st.text_area(
+        "Texto de la publicación o anuncio:", 
+        value="", 
+        placeholder="Pega o escribe aquí el texto de la publicación a analizar..."
+    )
     
     palabras_clave = ["vendo", "vende", "precio", "dm", "ejemplar", "entrega", "envíos", "exótico", "barato", "jaula"]
-    coincidencias = [palabra for palabra in palabras_clave if palabra in texto_pub.lower()]
     
     st.write("**Análisis del Procesamiento de Lenguaje Natural (PLN):**")
-    if coincidencias:
-        st.error(f"🚨 **ALERTA EPIDEMIOLÓGICA:** Se identificaron patrones de comercio ilícito ({', '.join(coincidencias)}).")
-        st.markdown("**Triaje prioritario:** Nivel 1 - Inspección Sanitaria Requerida.")
+    
+    if texto_pub.strip():
+        coincidencias = [palabra for palabra in palabras_clave if palabra in texto_pub.lower()]
+        if coincidencias:
+            st.error(f"🚨 **ALERTA EPIDEMIOLÓGICA:** Se identificaron patrones de comercio ilícito ({', '.join(coincidencias)}).")
+            st.markdown("**Triaje prioritario:** Nivel 1 - Inspección Sanitaria Requerida.")
+        else:
+            st.success("✅ No se detectan indicadores explícitos de venta en el texto.")
     else:
-        st.success("✅ No se detectan indicadores explícitos de venta en el texto.")
+        st.info("Ingresa un texto arriba para ejecutar el análisis epidemiológico.")
