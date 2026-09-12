@@ -1,6 +1,7 @@
 import os
 import requests
 import cv2
+import cv2.dnn
 import numpy as np
 from PIL import Image
 import pandas as pd
@@ -88,6 +89,5 @@ with col2:
         st.markdown("**Triaje prioritario:** Nivel 1 - Inspección Sanitaria Requerida.")
     else:
         st.success("✅ No se detectan indicadores explícitos de venta en el texto.")
-    
 
 
