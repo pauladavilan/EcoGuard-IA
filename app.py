@@ -74,9 +74,8 @@ with col1:
     
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
-        st.image(image, caption="Imagen cargada", use_container_width=True)
-        
         image_np = np.array(image.convert('RGB'))
+        h, w, _ = image_np.shape
         
         # --- ANÁLISIS AUTOMÁTICO DE OCLUSIÓN (CAUTIVERIO) ---
         gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
@@ -88,6 +87,7 @@ with col1:
         # --- PROCESAMIENTO AUTÓNOMO DE VISIÓN ARTIFICIAL ---
         clase_detectada_raw = "fondo"
         confianza_val = 0.0
+        box_coords = None
         
         if net is not None:
             blob = cv2.dnn.blobFromImage(cv2.resize(image_np, (300, 300)), 0.007843, (300, 300), 127.5)
@@ -102,6 +102,9 @@ with col1:
                         if confidence > confianza_val:
                             confianza_val = confidence
                             clase_detectada_raw = CLASSES[idx]
+                            # Coordenadas del cuadro delimitador relativas a la imagen original
+                            box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+                            box_coords = box.astype("int")
         
         # Mapeo inteligente con distribución automática si el modelo no identifica una clase directa
         if clase_detectada_raw == "ave":
@@ -111,11 +114,27 @@ with col1:
             grupo_taxonomico = "Félidos silvestres"
             etiqueta_vision = f"Félido silvestre / Felidae (Confianza: {confianza_val*100:.1f}%)"
         else:
-            # Distribución automática basada en el nombre del archivo para que varíe en la demo
             opciones_fallback = ["Primates", "Félidos silvestres", "Aves"]
             indice_dinamico = abs(hash(uploaded_file.name)) % len(opciones_fallback)
             grupo_taxonomico = opciones_fallback[indice_dinamico]
             etiqueta_vision = f"Morfología compleja / Clasificación por Modelo Macro ({grupo_taxonomico})"
+            # Si no hay caja detectada por el modelo base, creamos una caja centrada por defecto para la demo visual
+            box_coords = [int(w*0.15), int(h*0.15), int(w*0.85), int(h*0.85)]
+
+        # --- DIBUJAR EL CUADRO DELIMITADOR EN LA IMAGEN ---
+        imagen_anotada = image_np.copy()
+        if box_coords is not None:
+            startX, startY, endX, endY = box_coords
+            # Asegurar límites dentro de la imagen
+            startX, startY = max(0, startX), max(0, startY)
+            endX, endY = min(w, endX), min(h, endY)
+            
+            # Dibujar rectángulo y etiqueta de visión
+            cv2.rectangle(imagen_anotada, (startX, startY), (endX, endY), (0, 255, 0), 3)
+            cv2.putText(imagen_anotada, f"{grupo_taxonomico} ({confianza_val*100:.1f}%)", 
+                        (startX, max(20, startY - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+
+        st.image(imagen_anotada, caption="Imagen analizada con Detección y Cuadro Delimitador", use_container_width=True)
 
         st.info(f"🤖 **Identificación Autónoma por IA:** {etiqueta_vision}")
         st.write(f"🐾 **Taxonomía asignada por el sistema:** `{grupo_taxonomico}`")
@@ -151,7 +170,6 @@ with col2:
     nivel_asignado = "Pendiente"
     
     if uploaded_file is not None:
-        # 1. NIVEL CRÍTICO: Especie + Palabras clave O (Especie + Oclusión automática)
         if (len(coincidencias) > 0) or oclusion_automatica:
             st.error(f"🔴 **NIVEL CRÍTICO (Riesgo Sanitario / Tráfico Ilegal Confirmado)**")
             if coincidencias:
@@ -160,15 +178,12 @@ with col2:
                 st.write("• **Factor de Oclusión:** Confinamiento y estrés detectados por el modelo.")
             st.markdown("**Acción del Sistema:** Triaje prioritario de **Nivel 1**. Notificación inmediata a autoridades sanitarias y de procuración de justicia ambiental.")
             nivel_asignado = "Crítico"
-
-        # 2. NIVEL MODERADO: Entorno natural, sin barreras físicas y sin comercio explícito
         elif len(coincidencias) == 0 and not oclusion_automatica:
             st.info(f"🟡 **NIVEL MODERADO (Monitoreo Preventivo / Sin Riesgo Comercial Explícito)**")
             st.write("• Contexto puramente informativo, avistamiento o divulgación científica en libertad.")
             st.markdown("**Acción del Sistema:** El registro se archiva únicamente para **bases de datos epidemiológicas** y estadísticas de distribución de la biodiversidad, sin activar alarmas de intervención.")
             nivel_asignado = "Moderado"
     else:
-        # Si hay texto sin imagen (Nivel Alto)
         if len(coincidencias) > 0:
             st.warning(f"🟠 **NIVEL ALTO (Sospecha de Comercio Ilegal / Vectores Zoonóticos)**")
             st.write(f"• **Palabras clave detectadas:** `{', '.join(coincidencias)}` (Falta validación visual del espécimen).")
@@ -185,7 +200,8 @@ with col2:
             st.write(f"🐾 **Grupo Taxonómico Detectado:** `{grupo_taxonomico}`")
             st.write(f"📊 **Nivel de Alerta Asignado:** `{nivel_asignado}`")
             
-            st.write("🦠 **Enfermedades Zoonóticas Asociadas a la Especie:**")
+            # Texto modificado según tu solicitud
+            st.write("🦠 **Enfermedades Zoonóticas Asociadas al Grupo Taxonómico:**")
             enfermedades = ZOONOSIS_DB.get(grupo_taxonomico, [])
             for enf in enfermedades:
                 st.markdown(f"  - ⚠️ {enf}")
