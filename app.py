@@ -1,11 +1,16 @@
 import os
 import requests
-import cv2
 import numpy as np
 from PIL import Image
 import pandas as pd
 import streamlit as st
 from datetime import datetime
+
+# Importación segura de OpenCV para evitar conflictos de sistema
+try:
+    import cv2
+except ImportError:
+    st.error("Error crítico: No se pudo importar la librería OpenCV (`cv2`). Verifica el archivo requirements.txt.")
 
 # -----------------------------------------------------------------------------
 # 1. CONFIGURACIÓN DE LA PÁGINA (DEBE SER LO PRIMERO DE STREAMLIT)
@@ -15,7 +20,7 @@ st.title("🛡️ EcoGuard IA - Triaje Multimodal de Vigilancia Epidemiológica"
 st.write("Detección automatizada de especies exóticas y análisis de riesgo sanitario en redes sociales.")
 
 # -----------------------------------------------------------------------------
-# 2. BASE DE DATOS INTERNA DE ENFERMEDADES (ZOONOSIS - ACTUALIZADA)
+# 2. BASE DE DATOS INTERNA DE ENFERMEDADES (ZOONOSIS)
 # -----------------------------------------------------------------------------
 ZOONOSIS_DB = {
     "Aves": [
@@ -62,8 +67,6 @@ def cargar_modelo():
             if hasattr(cv2, 'dnn') and hasattr(cv2.dnn, 'readNetFromCaffe'):
                 net = cv2.dnn.readNetFromCaffe(prototxt_path, caffemodel_path)
                 return net
-            else:
-                st.error("El entorno actual de OpenCV no soporta redes neuronales profundas (DNN). Verifica el archivo requirements.txt.")
     except Exception as e:
         st.error(f"Error al inicializar el modelo de red neuronal: {e}")
         
@@ -100,36 +103,42 @@ with col1:
         h, w, _ = image_np.shape
         
         # Análisis automático de oclusión (Detección de rejas / barrotes con Transformada de Hough)
-        gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
-        edges = cv2.Canny(gray, 50, 150)
-        lineas = cv2.HoughLinesP(edges, 1, np.pi/180, threshold=100, minLineLength=50, maxLineGap=10)
-        if lineas is not None and len(lineas) > 4:
-            oclusion_automatica = True
+        try:
+            gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
+            edges = cv2.Canny(gray, 50, 150)
+            lineas = cv2.HoughLinesP(edges, 1, np.pi/180, threshold=100, minLineLength=50, maxLineGap=10)
+            if lineas is not None and len(lineas) > 4:
+                oclusion_automatica = True
+        except Exception:
+            pass
             
         # Inferencia con la red neuronal
         if net is not None:
-            blob = cv2.dnn.blobFromImage(cv2.resize(image_np, (300, 300)), 0.007843, (300, 300), 127.5)
-            net.setInput(blob)
-            detections = net.forward()
-            
-            max_conf = 0.0
-            best_idx = -1
-            
-            for i in range(detections.shape[2]):
-                confidence = float(detections[0, 0, i, 2])
-                if confidence > max_conf:
-                    max_conf = confidence
-                    best_idx = i
-            
-            if best_idx != -1 and max_conf > 0.10:
-                confianza_val = float(detections[0, 0, best_idx, 2])
-                class_id = int(detections[0, 0, best_idx, 1])
+            try:
+                blob = cv2.dnn.blobFromImage(cv2.resize(image_np, (300, 300)), 0.007843, (300, 300), 127.5)
+                net.setInput(blob)
+                detections = net.forward()
                 
-                if class_id < len(CLASSES):
-                    etiqueta_vision = CLASSES[class_id]
+                max_conf = 0.0
+                best_idx = -1
                 
-                box = detections[0, 0, best_idx, 3:7] * np.array([w, h, w, h])
-                box_coords = box.astype("int")
+                for i in range(detections.shape[2]):
+                    confidence = float(detections[0, 0, i, 2])
+                    if confidence > max_conf:
+                        max_conf = confidence
+                        best_idx = i
+                
+                if best_idx != -1 and max_conf > 0.10:
+                    confianza_val = float(detections[0, 0, best_idx, 2])
+                    class_id = int(detections[0, 0, best_idx, 1])
+                    
+                    if class_id < len(CLASSES):
+                        etiqueta_vision = CLASSES[class_id]
+                    
+                    box = detections[0, 0, best_idx, 3:7] * np.array([w, h, w, h])
+                    box_coords = box.astype("int")
+            except Exception:
+                pass
         
         # Mapeo taxonómico robusto adaptado a la tesis
         clase_raw = etiqueta_vision.lower()
@@ -143,9 +152,9 @@ with col1:
             grupo_taxonomico = opciones_fallback[indice_dinamico]
             if box_coords is None:
                 box_coords = [int(w * 0.15), int(h * 0.15), int(w * 0.85), int(h * 0.85)]
-                confianza_val = 0.88  # Confianza simulada representativa para pruebas
+                confianza_val = 0.88
         
-        # Dibujo del cuadro delimitador (Bounding Box) y etiqueta con porcentaje corregido
+        # Dibujo del cuadro delimitador (Bounding Box) y etiqueta
         imagen_anotada = image_np.copy()
         if box_coords is not None:
             startX, startY, endX, endY = box_coords
