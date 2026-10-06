@@ -1,5 +1,6 @@
-opencv-python-headless
+streamlit
+opencv-python
+numpy
+requests
 pillow
 pandas
-requests
-
