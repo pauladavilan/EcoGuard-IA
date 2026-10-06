@@ -15,26 +15,22 @@ st.title("🛡️ EcoGuard IA - Triaje Multimodal de Vigilancia Epidemiológica"
 st.write("Detección automatizada de especies exóticas y análisis de riesgo sanitario en redes sociales.")
 
 # -----------------------------------------------------------------------------
-# 2. BASE DE DATOS INTERNA DE ENFERMEDADES (ZOONOSIS)
+# 2. BASE DE DATOS INTERNA DE ENFERMEDADES (ZOONOSIS - ACTUALIZADA)
 # -----------------------------------------------------------------------------
 ZOONOSIS_DB = {
     "Aves": [
-        "Virus de la Influenza Aviar (cepas H5N1, H7N9)",
-        "Psitacosis (Chlamydia psittaci)",
-        "Histoplasmosis (por acumulación de guano)",
-        "Enfermedad de Newcastle"
+        "Influenza Aviar de Alta Patogenicidad",
+        "Salmonelosis",
+        "Campilobacteriosis",
+        "Clamidiosis Aviar"
     ],
     "Primates": [
-        "Fiebre Amarilla silvestre",
-        "Virus del Herpes B (herpesvirus simiae)",
-        "Rabia silvestre",
-        "Shigelosis y Salmonelosis gastrointestinal"
+        "Giardiasis",
+        "Gusano Barrenador"
     ],
     "Félidos silvestres": [
-        "Rabia (Lyssavirus)",
-        "Toxoplasmosis (Toxoplasma gondii)",
-        "Enfermedad por arañazo de gato (Bartonella henselae)",
-        "Leptospirosis"
+        "Rabia Silvestre",
+        "Toxoplasmosis"
     ]
 }
 
