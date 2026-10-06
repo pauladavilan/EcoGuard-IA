@@ -59,8 +59,11 @@ def cargar_modelo():
                     f.write(r.content)
 
         if os.path.exists(prototxt_path) and os.path.exists(caffemodel_path):
-            net = cv2.dnn.readNetFromCaffe(prototxt_path, caffemodel_path)
-            return net
+            if hasattr(cv2, 'dnn') and hasattr(cv2.dnn, 'readNetFromCaffe'):
+                net = cv2.dnn.readNetFromCaffe(prototxt_path, caffemodel_path)
+                return net
+            else:
+                st.error("El entorno actual de OpenCV no soporta redes neuronales profundas (DNN). Verifica el archivo requirements.txt.")
     except Exception as e:
         st.error(f"Error al inicializar el modelo de red neuronal: {e}")
         
