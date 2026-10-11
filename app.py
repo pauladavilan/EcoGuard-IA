@@ -194,7 +194,7 @@ with col2:
     st.subheader("📝 Módulo de Texto y Análisis de Riesgo")
     texto_pub = st.text_area("Texto de la publicación o anuncio detectado:", value="")
     
-    palabras_clave = ["vendo", "vende", "precio", "dm", "ejemplar", "mascota exótica", "entrega", "disponible", "informes inbox"]
+    palabras_clave = ["vendo", "vende", "precio", "dm", "ejemplar", "mascota exótica", "entrega", "disponible", "informes inbox", "inf", "Norma 059", "cachorro", "polluelo", "solo conocedores", "trato directo"]
     coincidencias = [palabras for palabras in palabras_clave if palabras in texto_pub.lower()]
     
     timestamp_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
