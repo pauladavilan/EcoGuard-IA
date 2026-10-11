@@ -191,43 +191,41 @@ with col1:
 # 6. MÓDULO DERECHO: TEXTO Y MATRIZ DE DECISIÓN MULTIMODAL
 # -----------------------------------------------------------------------------
 with col2:
-    st.subheader("📝 Módulo de Texto y Análisis de Riesgo")
-    texto_pub = st.text_area("Texto de la publicación o anuncio detectado:", value="")
-    # 1. Definir la lista de palabras clave
-        palabras_clave = [
-            "vendo",
-            "vende",
-            "precio",
-            "dm",
-            "ejemplar",
-            "mascota exótica",
-            "entrega",
-            "disponible",
-            "informes inbox",
-            "inf",
-            "Norma 059",
-            "cachorro",
-            "polluelo",
-            "solo conocedores",
-            "trato directo",
-        ]
-        coincidencias = [
-            palabras
-            for palabras in palabras_clave
-            if palabras in texto_pub.lower()
-        ]
+    with col2:
+  st.subheader("📝 Módulo de Texto y Análisis de Riesgo")
+  texto_pub = st.text_area(
+      "Texto de la publicación o anuncio detectado:", value=""
+  )
 
-        # 2. Para mostrar las palabras detectadas en pantalla
-        if coincidencias:
-          st.markdown("**Palabras clave detectadas:**")
-          for palabra in coincidencias:
-            st.markdown(f"- `{palabra}`")
+  palabras_clave = [
+      "vendo",
+      "vende",
+      "precio",
+      "dm",
+      "ejemplar",
+      "mascota exótica",
+      "entrega",
+      "disponible",
+      "informes inbox",
+      "inf",
+      "Norma 059",
+      "cachorro",
+      "polluelo",
+      "solo conocedores",
+      "trato directo",
+  ]
+  coincidencias = [
+      palabras for palabras in palabras_clave if palabras in texto_pub.lower()
+  ]
 
-        timestamp_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        nivel_asignado = "Pendiente"
-    
-    timestamp_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    nivel_asignado = "Pendiente"
+  # Mostrar las palabras detectadas en la interfaz de manera limpia
+  if coincidencias:
+    st.markdown("**Palabras clave detectadas:**")
+    for palabra in coincidencias:
+      st.markdown(f"- `{palabra}`")
+
+  timestamp_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+  nivel_asignado = "Pendiente"
     
     if uploaded_file is not None:
         if (len(coincidencias) > 0) or oclusion_automatica:
