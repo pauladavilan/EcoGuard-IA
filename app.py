@@ -235,13 +235,7 @@ with col1:
         caption="Imagen analizada con Detección de Patrones",
         use_container_width=True,
     )
-    st.info(
-        f"🤖 **Identificación Autónoma por IA:** {etiqueta_vision.capitalize()}"
-    )
     st.write(f"🐾 **Taxonomía asignada por el sistema:** `{grupo_taxonomico}`")
-
-    # Mostrar la ruta absoluta del archivo en el panel izquierdo
-    st.caption(f"📁 **Ruta Absoluta:** `{ruta_absoluta_archivo}`")
 
     if oclusion_automatica:
       st.warning(
