@@ -117,6 +117,7 @@ etiqueta_vision = "Desconocido"
 oclusion_automatica = False
 confianza_val = 0.0
 box_coords = None
+ruta_absoluta_archivo = "No se ha cargado ningún archivo"
 
 # -----------------------------------------------------------------------------
 # 5. MÓDULO IZQUIERDO: CARGA Y VISIÓN ARTIFICIAL
@@ -129,6 +130,12 @@ with col1:
   )
 
   if uploaded_file is not None:
+    # Guardar el archivo temporalmente en disco para obtener su ruta absoluta real
+    temp_file_path = os.path.join(".", uploaded_file.name)
+    with open(temp_file_path, "wb") as f:
+      f.write(uploaded_file.getbuffer())
+    ruta_absoluta_archivo = os.path.abspath(temp_file_path)
+
     image = Image.open(uploaded_file).convert("RGB")
     image_np = np.array(image)
     h, w, _ = image_np.shape
@@ -233,6 +240,9 @@ with col1:
     )
     st.write(f"🐾 **Taxonomía asignada por el sistema:** `{grupo_taxonomico}`")
 
+    # Mostrar la ruta absoluta del archivo en el panel izquierdo
+    st.caption(f"📁 **Ruta Absoluta:** `{ruta_absoluta_archivo}`")
+
     if oclusion_automatica:
       st.warning(
           "⚠️ **Factor de Oclusión Detectado:** Se identificaron patrones"
@@ -320,6 +330,7 @@ with col2:
         "📋 **Expediente y Registro de Evidencias (Sistema)**", expanded=True
     ):
       st.write(f"📅 **Fecha y Hora de Registro:** `{timestamp_actual}`")
+      st.write(f"📁 **Ruta Absoluta del Archivo:** `{ruta_absoluta_archivo}`")
       st.write(f"🐾 **Grupo Taxonómico Detectado:** `{grupo_taxonomico}`")
       st.write(f"📊 **Nivel de Alerta Asignado:** `{nivel_asignado}`")
 
